@@ -5,6 +5,16 @@
         Detector.addGetWebGLMessage();
     }
 
+    /**
+     * @param a 初期値
+     * @param b 達成値
+     * @param x 0〜1の遷移
+     */
+    function easing(a, b, x) {
+        var c = b - a;
+        return c * (-Math.pow(2, -10 * x) + 1) + a;
+    }
+
     var PI_2 = Math.PI / 2;
 
     var domContainer;
@@ -15,13 +25,14 @@
         scene,
         renderer;
 
-    var cube;
+    var cube, ret;
     var plane;
 
     function createCube(width, height, depth) {
         var segments = 10;
         var faceGeometry = new THREE.PlaneBufferGeometry(width, height, segments, segments);
         var faceMaterial = new THREE.MeshLambertMaterial({ color: 0xaa3333 });
+        faceMaterial.side = THREE.DoubleSide;
 
         function createFace(width, height) {
             var halfWidth  = width / 2;
@@ -80,7 +91,7 @@
         bottomJoint.rotation.x = PI_2;
 
 
-        var ret = createFace(width, height);
+        ret = createFace(width, height);
         ret.facies[2].add(topJoint);
         ret.facies[2].add(bottomJoint);
 
@@ -92,7 +103,7 @@
         });
 
         var mainJoint = ret.joints[0];
-        mainJoint.position.x = halfWidth;
+        mainJoint.position.x = width / 2;
 
         var cube = new THREE.Object3D();
         cube.add(mainJoint);
@@ -162,8 +173,44 @@
 
     init();
 
+    function deployCube() {
+        var time = 2000;
+        var start = Date.now();
+        var t = 0;
+
+        var startRotationX = container.rotation.x;
+        var startRotationY = container.rotation.y;
+
+        (function loop() {
+            var now = Date.now();
+            var delta = (now - start) || 1;
+            var t = delta / time;
+            if (t >= 1) {
+                return;
+            }
+            var rad = easing(PI_2, 0, t);
+            ret.joints.forEach(function (joint, i) {
+                joint.rotation.y = rad;
+            });
+
+            var containerRadX = easing(startRotationX, 0, t);
+            var containerRadY = easing(startRotationX, 0, t);
+            container.rotation.x = containerRadX;
+            container.rotation.y = containerRadY;
+            render();
+            
+            requestAnimationFrame(loop);
+        }());
+    }
+
+    var mainAnimID;
+    document.addEventListener('click', function (e) {
+        cancelAnimationFrame(mainAnimID);
+        deployCube();
+    }, false);
+
     (function animate() {
-        requestAnimationFrame(animate);
+        mainAnimID = requestAnimationFrame(animate);
 
         container.rotation.x += 0.01;
         container.rotation.y += 0.005;
