@@ -31,7 +31,10 @@
     function createCube(width, height, depth) {
         var segments = 10;
         var faceGeometry = new THREE.PlaneBufferGeometry(width, height, segments, segments);
-        var faceMaterial = new THREE.MeshLambertMaterial({ color: 0xaa3333 });
+        var faceMaterial = new THREE.MeshLambertMaterial({
+            transparent: true,
+            map: THREE.ImageUtils.loadTexture('img/menu.png')
+        });
         faceMaterial.side = THREE.DoubleSide;
 
         function createFace(width, height) {
@@ -99,6 +102,7 @@
         var zNear  = 1;
         var zFar   = 3000;
         camera = new THREE.PerspectiveCamera(fov, aspect, zNear, zFar);
+        // camera.position.x = -200;
         camera.position.y = 100;
         camera.position.z = 150;
 
@@ -109,6 +113,7 @@
         light.shadowMapWidth  = 2048;
         light.shadowMapHeight = 2048;
 
+        // シャドウのデバッグフラグ
         // light.shadowCameraVisible = true;
 
         // シーンを生成
@@ -182,11 +187,58 @@
         deployCube();
     }, false);
 
+    domContainer.addEventListener('mousemove', function (e) {
+
+        var rect = e.target.getBoundingClientRect();
+
+        // スクリーン上のマウス位置を取得する
+        var mouseX = e.clientX - rect.left;
+        var mouseY = e.clientY - rect.top;
+
+        // 取得したスクリーン座標を-1〜1に正規化する（WebGLは-1〜1で座標が表現される）
+        mouseX =  (mouseX / window.innerWidth)  * 2 - 1;
+        mouseY = -(mouseY / window.innerHeight) * 2 + 1;
+
+        // マウスの位置ベクトル
+        var pos = new THREE.Vector3(mouseX, mouseY, 1);
+
+        // pos はスクリーン座標系なので、オブジェクトの座標系に変換
+        // オブジェクト座標系は今表示しているカメラからの視点なのでカメラオブジェクトを渡す
+        pos.unproject(camera);
+
+        // 始点、向きベクトルを渡してレイを作成
+        var ray = new THREE.Raycaster(camera.position, pos.sub(camera.position).normalize());
+
+        // 交差判定
+        // 引数は取得対象となるMeshの配列を渡す。以下はシーン内のすべてのオブジェクトを対象に。
+        // ヒエラルキーを持った子要素も対象とする場合は第二引数にtrueを指定する
+        var objs = ray.intersectObjects(cube.children, true);
+
+        if (objs.length > 0) {
+            // 交差していたらobjsが1以上になるので、やりたいことをやる。
+            ret.facies.forEach(function (face, i) {
+                face.material.color = new THREE.Color(0x000000);
+            });
+        }
+        else {
+            ret.facies.forEach(function (face, i) {
+                face.material.color = new THREE.Color(0xffffff);
+            });
+        }
+    }, false);
+
     (function animate() {
         mainAnimID = requestAnimationFrame(animate);
 
         container.rotation.x += 0.01;
         container.rotation.y += 0.005;
+
+        if (container.rotation.x >= Math.PI * 2) {
+            container.rotation.x = 0;
+        }
+        if (container.rotation.y >= Math.PI * 2) {
+            container.rotation.y = 0;
+        }
 
         render();
     }());
