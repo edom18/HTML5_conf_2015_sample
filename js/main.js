@@ -113,6 +113,8 @@
         light.shadowMapWidth  = 2048;
         light.shadowMapHeight = 2048;
 
+        var ambientLight = new THREE.AmbientLight(0x666666);
+
         // シャドウのデバッグフラグ
         // light.shadowCameraVisible = true;
 
@@ -137,6 +139,7 @@
         scene.add(plane);
         scene.add(container);
         scene.add(light);
+        scene.add(ambientLight);
 
         camera.lookAt(container.position);
 
