@@ -68,32 +68,32 @@
         }
 
 
-        var topFace    = new THREE.Mesh(faceGeometry, faceMaterial);
-        topFace.castShadow = true;
-        var bottomFace = new THREE.Mesh(faceGeometry, faceMaterial);
-        bottomFace.castShadow = true;
+        // var topFace    = new THREE.Mesh(faceGeometry, faceMaterial);
+        // topFace.castShadow = true;
+        // var bottomFace = new THREE.Mesh(faceGeometry, faceMaterial);
+        // bottomFace.castShadow = true;
 
-        var topJoint    = new THREE.Object3D();
-        topJoint.add(topFace);
-        var bottomJoint = new THREE.Object3D();
-        bottomJoint.add(bottomFace);
+        // var topJoint    = new THREE.Object3D();
+        // topJoint.add(topFace);
+        // var bottomJoint = new THREE.Object3D();
+        // bottomJoint.add(bottomFace);
 
-        var halfWidth  = width / 2;
-        var halfHeight = height / 2;
+        // var halfWidth  = width / 2;
+        // var halfHeight = height / 2;
 
-        topJoint.position.y = halfHeight;
-        topFace.position.y  = halfHeight;
+        // topJoint.position.y = halfHeight;
+        // topFace.position.y  = halfHeight;
 
-        bottomJoint.position.y = -halfHeight;
-        bottomFace.position.y  = -halfHeight;
+        // bottomJoint.position.y = -halfHeight;
+        // bottomFace.position.y  = -halfHeight;
 
-        topJoint.rotation.x    = -PI_2;
-        bottomJoint.rotation.x = PI_2;
+        // topJoint.rotation.x    = -PI_2;
+        // bottomJoint.rotation.x = PI_2;
 
 
         ret = createFace(width, height);
-        ret.facies[2].add(topJoint);
-        ret.facies[2].add(bottomJoint);
+        // ret.facies[2].add(topJoint);
+        // ret.facies[2].add(bottomJoint);
 
         ret.joints.forEach(function (joint, i) {
             joint.rotation.y = PI_2;
