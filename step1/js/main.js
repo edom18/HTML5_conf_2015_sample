@@ -54,17 +54,23 @@
     plane.receiveShadow = true;
 
     var boxGeometry = new THREE.BoxGeometry(50, 50, 50);
-    var boxMaterial = new THREE.MeshLambertMaterial({
+    var boxMaterial1 = new THREE.MeshLambertMaterial({
         color: 0x3333aa
     });
-    cube1 = new THREE.Mesh(boxGeometry, boxMaterial);
+    var boxMaterial2 = new THREE.MeshLambertMaterial({
+        color: 0x3333aa
+    });
+    var boxMaterial3 = new THREE.MeshLambertMaterial({
+        color: 0x3333aa
+    });
+    cube1 = new THREE.Mesh(boxGeometry, boxMaterial1);
     cube1.castShadow = true;
     cube1.position.x = -100;
 
-    cube2 = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube2 = new THREE.Mesh(boxGeometry, boxMaterial2);
     cube2.castShadow = true;
 
-    cube3 = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube3 = new THREE.Mesh(boxGeometry, boxMaterial3);
     cube3.position.x = 100;
     cube3.castShadow = true;
 
