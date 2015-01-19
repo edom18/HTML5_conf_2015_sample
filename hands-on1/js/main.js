@@ -6,79 +6,103 @@
     }
 
     var domContainer;
-
+    
     var camera,
         light,
         scene,
         renderer;
 
-    var cube;
+    var cube1, cube2, cube3;
     var plane;
-    
-    function init() {
 
-        domContainer = document.createElement('div');
-        document.body.appendChild(domContainer);
+    domContainer = document.createElement('div');
+    document.body.appendChild(domContainer);
 
-        // カメラを生成
-        var fov    = 75;
-        var aspect = window.innerWidth / window.innerHeight;
-        var zNear  = 1;
-        var zFar   = 3000;
-        camera = new THREE.PerspectiveCamera(fov, aspect, zNear, zFar);
-        // camera.position.x = -200;
-        camera.position.y = 100;
-        camera.position.z = 150;
+    // カメラを生成
+    var fov    = 75;
+    var aspect = window.innerWidth / window.innerHeight;
+    var zNear  = 1;
+    var zFar   = 3000;
+    camera = new THREE.PerspectiveCamera(fov, aspect, zNear, zFar);
+    // camera.position.x = -200;
+    camera.position.y = 100;
+    camera.position.z = 150;
 
-        // ライトを生成
-        light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(100, 100, 100);
-        light.castShadow = true;
-        light.shadowMapWidth  = 2048;
-        light.shadowMapHeight = 2048;
+    // ライトを生成
+    light = new THREE.DirectionalLight(0x999999);
+    light.position.set(10, 100, 10);
+    light.castShadow = true;
+    light.shadowMapWidth  = 2048;
+    light.shadowMapHeight = 2048;
 
-        var ambientLight = new THREE.AmbientLight(0x666666);
+    var ambientLight = new THREE.AmbientLight(0x666666);
 
-        // シャドウのデバッグフラグ
-        // light.shadowCameraVisible = true;
+    // シャドウのデバッグフラグ
+    // light.shadowCameraVisible = true;
 
-        // シーンを生成
-        scene = new THREE.Scene();
+    // シーンを生成
+    scene = new THREE.Scene();
 
-        var planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000, 1000);
-        var planeMaterial = new THREE.MeshLambertMaterial({
-            color: 0xdddddd
-        });
-        plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    var planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000, 1000);
+    var planeMaterial = new THREE.MeshLambertMaterial({
+        color: 0xdddddd
+    });
+    plane = new THREE.Mesh(planeGeometry, planeMaterial);
 
-        plane.position.y    = -100;
-        plane.rotation.x    = -Math.PI / 2;
-        plane.receiveShadow = true;
+    plane.position.y    = -100;
+    plane.rotation.x    = -Math.PI / 2;
+    plane.receiveShadow = true;
 
-        var boxGeometry = new THREE.BoxGeometry(50, 50, 50);
-        var boxMaterial = new THREE.MeshLambertMaterial({
-            color: 0x3333aa
-        });
-        cube = new THREE.Mesh(boxGeometry, boxMaterial);
-        cube.castShadow = true;
+    var boxGeometry = new THREE.BoxGeometry(50, 50, 50);
+    var boxMaterial = new THREE.MeshLambertMaterial({
+        color: 0x3333aa
+    });
+    cube1 = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube1.castShadow = true;
+    cube1.position.x = -100;
 
-        scene.add(plane);
-        scene.add(cube);
-        scene.add(light);
-        scene.add(ambientLight);
+    cube2 = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube2.castShadow = true;
 
-        camera.lookAt(cube.position);
+    cube3 = new THREE.Mesh(boxGeometry, boxMaterial);
+    cube3.position.x = 100;
+    cube3.castShadow = true;
 
-        // レンダラーを生成
-        renderer = new THREE.WebGLRenderer();
-        renderer.setClearColor(0xffffff);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMapEnabled = true;
-        domContainer.appendChild(renderer.domElement);
+    scene.add(plane);
+    scene.add(cube1);
+    scene.add(cube2);
+    scene.add(cube3);
+    scene.add(light);
+    scene.add(ambientLight);
+
+    camera.lookAt(cube2.position);
+
+    // レンダラーを生成
+    renderer = new THREE.WebGLRenderer();
+    renderer.setClearColor(0xffffff);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMapEnabled = true;
+    domContainer.appendChild(renderer.domElement);
+
+    (function animate() {
+        requestAnimationFrame(animate);
+
+        cube1.rotation.x += 0.01;
+        cube1.rotation.y += 0.005;
+
+        cube2.rotation.x -= 0.01;
+        cube2.rotation.y -= 0.005;
+
+        cube3.rotation.x += 0.005;
+        cube3.rotation.y += 0.0015;
+
+        render();
+    }());
+
+    function render() {
+        renderer.render(scene, camera);
     }
-
-    init();
 
     domContainer.addEventListener('mousemove', function (e) {
 
@@ -105,32 +129,16 @@
         // 交差判定
         // 引数は取得対象となるMeshの配列を渡す。以下はシーン内のすべてのオブジェクトを対象に。
         // ヒエラルキーを持った子要素も対象とする場合は第二引数にtrueを指定する
-        var objs = ray.intersectObjects(cube.children, true);
+        var objs = ray.intersectObjects([cube1, cube2, cube3], true);
 
         if (objs.length > 0) {
-            // 交差していたらobjsが1以上になるので、やりたいことをやる。
-            ret.facies.forEach(function (face, i) {
-                face.material.color = new THREE.Color(0x000000);
-            });
+            objs[0].object.material.color = new THREE.Color(0xaa0000);
         }
         else {
-            ret.facies.forEach(function (face, i) {
-                face.material.color = new THREE.Color(0xffffff);
+            [cube1, cube2, cube3].forEach(function (cube) { 
+                cube.material.color = new THREE.Color(0x3333aa);
             });
         }
     }, false);
-
-    (function animate() {
-        requestAnimationFrame(animate);
-
-        cube.rotation.x += 0.01;
-        cube.rotation.y += 0.005;
-
-        render();
-    }());
-
-    function render() {
-        renderer.render(scene, camera);
-    }
 
 }());
