@@ -89,13 +89,19 @@
     scene.add(light);
     scene.add(ambientLight);
 
+
+    //////////////////////////////////////////////////////////////////////////
+    // カメラの注視点をcube2の位置にする
     camera.lookAt(cube2.position);
 
 
     //////////////////////////////////////////////////////////////////////////
     // レンダラーを生成
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setClearColor(0xffffff);
+    var renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true
+    });
+    renderer.setClearColor(0x000000, 0.0);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMapEnabled = true;
