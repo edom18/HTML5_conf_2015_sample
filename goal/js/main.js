@@ -56,6 +56,7 @@
 
                 var joint = new THREE.Object3D();
                 var face  = new THREE.Mesh(faceGeometry, faceMaterial);
+                face.menuIndex = i;
 
                 if (i !== 0) {
                     joint.position.x = halfWidth;
@@ -182,7 +183,9 @@
     var start = 0;
     var startRotationX = 0;
     var startRotationY = 0;
-    function deployCubeStart() {
+    var toDeploy = false;
+    function deployCubeToggle() {
+        toDeploy = !toDeploy;
         start = Date.now();
 
         startRotationX = container.rotation.x;
@@ -195,9 +198,14 @@
         var delta = (now - start) || 1;
         var t = delta / time;
         if (t >= 1) {
+            if (!toDeploy) {
+                currentAnimation = normalAnimation;
+            }
             return;
         }
-        var rad = easing(PI_2, 0, t);
+        var startRad = toDeploy ? PI_2 : 0;
+        var endRad   = toDeploy ? 0    : PI_2;
+        var rad = easing(startRad, endRad, t);
         cube.elements.joints.forEach(function (joint, i) {
             joint.rotation.y = rad;
         });
@@ -207,6 +215,7 @@
         container.rotation.x = containerRadX;
         container.rotation.y = containerRadY;
     }
+    
 
     /**
      * 通常時のアニメーション
@@ -225,12 +234,7 @@
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // ホバー時の処理
-
-    var hoverColor = new THREE.Color(0x000000);
-    renderer.domElement.addEventListener('mousemove', function (e) {
-
+    function tracking(e) {
         var rect = e.target.getBoundingClientRect();
 
         // スクリーン上のマウス位置を取得
@@ -253,14 +257,31 @@
         // 交差判定
         var objs = ray.intersectObjects(cube.threeObject.children, true);
 
+        return objs;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // ホバー時の処理
+    var hovering = false;
+    renderer.domElement.addEventListener('mousemove', function (e) {
+        var objs = tracking(e);
+
         var isCross = objs.length > 0;
         if (isCross) {
+            this.style.cursor = 'pointer';
+
+            if (!hovering) {
+                deployCubeToggle();
+                hovering = true;
+            }
             cube.elements.facies.forEach(function (face, i) {
                 face.material.color = cubeColor;
             });
-            objs[0].object.material.color = hoverColor;
+            objs[0].object.material.color = hoverCubeColor;
         }
         else {
+            this.style.cursor = 'default';
+            hovering = false;
             cube.elements.facies.forEach(function (face, i) {
                 face.material.color = cubeColor;
             });
@@ -269,7 +290,29 @@
 
     // クリック時の挙動
     document.addEventListener('click', function (e) {
-        deployCubeStart();
+        var objs = tracking(e);
+
+        var isCross = objs.length > 0;
+        if (isCross) {
+            switch(objs[0].object.menuIndex) {
+                case 1: {
+                    location.href = 'http://google.co.jp';
+                    break;
+                }
+                case 2: {
+                    location.href = 'http://yahoo.co.jp';
+                    break;
+                }
+                case 3: {
+                    location.href = 'http://www.bing.com/';
+                    break;
+                }
+                case 4: {
+                    location.href = 'http://events.html5j.org/conference/2015/1/';
+                    break;
+                }
+            }
+        }
     }, false);
 
 
