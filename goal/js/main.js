@@ -179,22 +179,22 @@
     /**
      * メニューを展開
      */
-    var time  = 2000;
+    var time  = 1000;
     var start = 0;
     var startPositionX = 0;
     var startRotationX = 0;
     var startRotationY = 0;
     var toDeploy = false;
     var prev = 0;
-    var threshold = 200;
-    function deployCubeToggle() {
+    var threshold = 300;
+    function deployCubeStart(toShow) {
 
         var now = Date.now();
         if (now - prev < threshold) {
             return;
         }
 
-        toDeploy = !toDeploy;
+        toDeploy = toShow;
 
         prev  = now;
         start = now;
@@ -290,7 +290,7 @@
 
             if (!hovering) {
                 hovering = true;
-                deployCubeToggle();
+                deployCubeStart(true);
             }
             cube.elements.facies.forEach(function (face, i) {
                 face.material.color = cubeColor;
@@ -301,7 +301,7 @@
 
             if (hovering) {
                 hovering = false;
-                deployCubeToggle();
+                deployCubeStart(false);
             }
 
             this.style.cursor = 'default';
