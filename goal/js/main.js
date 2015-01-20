@@ -181,13 +181,25 @@
      */
     var time  = 2000;
     var start = 0;
+    var startPositionX = 0;
     var startRotationX = 0;
     var startRotationY = 0;
     var toDeploy = false;
+    var prev = 0;
+    var threshold = 200;
     function deployCubeToggle() {
-        toDeploy = !toDeploy;
-        start = Date.now();
 
+        var now = Date.now();
+        if (now - prev < threshold) {
+            return;
+        }
+
+        toDeploy = !toDeploy;
+
+        prev  = now;
+        start = now;
+
+        startPositionX = container.position.x;
         startRotationX = container.rotation.x;
         startRotationY = container.rotation.y;
 
@@ -203,6 +215,8 @@
             }
             return;
         }
+
+        // ジョイントの回転
         var startRad = toDeploy ? PI_2 : 0;
         var endRad   = toDeploy ? 0    : PI_2;
         var rad = easing(startRad, endRad, t);
@@ -210,12 +224,16 @@
             joint.rotation.y = rad;
         });
 
+        // キューブ自体の移動・回転
+        var startPosX = toDeploy ? 0    : -100;
+        var endPosX   = toDeploy ? -100 : 0;
+        var containerPosX = easing(startPosX, endPosX, t);
         var containerRadX = easing(startRotationX, 0, t);
         var containerRadY = easing(startRotationX, 0, t);
+        container.position.x = containerPosX;
         container.rotation.x = containerRadX;
         container.rotation.y = containerRadY;
     }
-    
 
     /**
      * 通常時のアニメーション
@@ -233,7 +251,7 @@
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-
+    // マウス座標をThree.js内の座標に変換し、オブジェクトをトラッキング
     function tracking(e) {
         var rect = e.target.getBoundingClientRect();
 
@@ -271,8 +289,8 @@
             this.style.cursor = 'pointer';
 
             if (!hovering) {
-                deployCubeToggle();
                 hovering = true;
+                deployCubeToggle();
             }
             cube.elements.facies.forEach(function (face, i) {
                 face.material.color = cubeColor;
@@ -280,34 +298,40 @@
             objs[0].object.material.color = hoverCubeColor;
         }
         else {
+
+            if (hovering) {
+                hovering = false;
+                deployCubeToggle();
+            }
+
             this.style.cursor = 'default';
-            hovering = false;
             cube.elements.facies.forEach(function (face, i) {
                 face.material.color = cubeColor;
             });
         }
     }, false);
 
-    // クリック時の挙動
+    ///////////////////////////////////////////////////////////////////////////////
+    // クリック時の処理
     document.addEventListener('click', function (e) {
         var objs = tracking(e);
 
         var isCross = objs.length > 0;
         if (isCross) {
             switch(objs[0].object.menuIndex) {
-                case 1: {
+                case 0: {
                     location.href = 'http://google.co.jp';
                     break;
                 }
-                case 2: {
+                case 1: {
                     location.href = 'http://yahoo.co.jp';
                     break;
                 }
-                case 3: {
+                case 2: {
                     location.href = 'http://www.bing.com/';
                     break;
                 }
-                case 4: {
+                case 3: {
                     location.href = 'http://events.html5j.org/conference/2015/1/';
                     break;
                 }
