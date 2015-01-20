@@ -5,6 +5,11 @@
         Detector.addGetWebGLMessage();
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    // キューブの色
+    var cubeColor      = new THREE.Color(0x3333aa);
+    var hoverCubeColor = new THREE.Color(0xaa0000);
+
     /**
      * @param a 初期値
      * @param b 達成値
@@ -28,15 +33,6 @@
         var segments = 10;
         var faceGeometry = new THREE.PlaneBufferGeometry(width, height, segments, segments);
 
-        // テクスチャを利用してマテリアルを生成
-        var faceMaterial = new THREE.MeshLambertMaterial({
-            transparent: true,
-            map: THREE.ImageUtils.loadTexture('img/menu.png')
-        });
-
-        // 半透明オブジェクトのため、裏面も表示するようにする
-        faceMaterial.side = THREE.DoubleSide;
-
         /**
          * 各面を生成する
          */
@@ -49,6 +45,15 @@
             var joints = [],
                 facies = [];
             for (var i = 0; i < 4; i++) {
+                // テクスチャを利用してマテリアルを生成
+                var faceMaterial = new THREE.MeshLambertMaterial({
+                    transparent: true,
+                    map: THREE.ImageUtils.loadTexture('img/menu.png')
+                });
+                // 半透明オブジェクトのため、裏面も表示するようにする
+                faceMaterial.side = THREE.DoubleSide;
+
+
                 var joint = new THREE.Object3D();
                 var face  = new THREE.Mesh(faceGeometry, faceMaterial);
 
@@ -167,50 +172,63 @@
     document.body.appendChild(renderer.domElement);
 
 
+    // 現在のアニメーション
+    var currentAnimation = normalAnimation;
+
     /**
      * メニューを展開
      */
+    var time  = 2000;
+    var start = 0;
+    var startRotationX = 0;
+    var startRotationY = 0;
+    function deployCubeStart() {
+        start = Date.now();
+
+        startRotationX = container.rotation.x;
+        startRotationY = container.rotation.y;
+
+        currentAnimation = deployCube;
+    }
     function deployCube() {
-        var time = 2000;
-        var start = Date.now();
-        var t = 0;
+        var now = Date.now();
+        var delta = (now - start) || 1;
+        var t = delta / time;
+        if (t >= 1) {
+            return;
+        }
+        var rad = easing(PI_2, 0, t);
+        cube.elements.joints.forEach(function (joint, i) {
+            joint.rotation.y = rad;
+        });
 
-        var startRotationX = container.rotation.x;
-        var startRotationY = container.rotation.y;
+        var containerRadX = easing(startRotationX, 0, t);
+        var containerRadY = easing(startRotationX, 0, t);
+        container.rotation.x = containerRadX;
+        container.rotation.y = containerRadY;
+    }
 
-        (function loop() {
-            var now = Date.now();
-            var delta = (now - start) || 1;
-            var t = delta / time;
-            if (t >= 1) {
-                return;
-            }
-            var rad = easing(PI_2, 0, t);
-            cube.elements.joints.forEach(function (joint, i) {
-                joint.rotation.y = rad;
-            });
+    /**
+     * 通常時のアニメーション
+     */
+    function normalAnimation() {
+        container.rotation.x += 0.01;
+        container.rotation.y += 0.005;
 
-            var containerRadX = easing(startRotationX, 0, t);
-            var containerRadY = easing(startRotationX, 0, t);
-            container.rotation.x = containerRadX;
-            container.rotation.y = containerRadY;
-            render();
-            
-            requestAnimationFrame(loop);
-        }());
+        if (container.rotation.x >= limit) {
+            container.rotation.x = 0;
+        }
+        if (container.rotation.y >= limit) {
+            container.rotation.y = 0;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    // クリック時の挙動
-    var mainAnimID;
-    document.addEventListener('click', function (e) {
-        cancelAnimationFrame(mainAnimID);
-        deployCube();
-    }, false);
-
     ///////////////////////////////////////////////////////////////////////////////
     // ホバー時の処理
+
+    var hoverColor = new THREE.Color(0x000000);
     renderer.domElement.addEventListener('mousemove', function (e) {
 
         var rect = e.target.getBoundingClientRect();
@@ -233,19 +251,25 @@
         var ray = new THREE.Raycaster(camera.position, pos.sub(camera.position).normalize());
 
         // 交差判定
-        var objs = ray.intersectObjects(cube.children, true);
+        var objs = ray.intersectObjects(cube.threeObject.children, true);
 
         var isCross = objs.length > 0;
         if (isCross) {
             cube.elements.facies.forEach(function (face, i) {
-                face.material.color = new THREE.Color(0x000000);
+                face.material.color = cubeColor;
             });
+            objs[0].object.material.color = hoverColor;
         }
         else {
             cube.elements.facies.forEach(function (face, i) {
-                face.material.color = new THREE.Color(0xffffff);
+                face.material.color = cubeColor;
             });
         }
+    }, false);
+
+    // クリック時の挙動
+    document.addEventListener('click', function (e) {
+        deployCubeStart();
     }, false);
 
 
@@ -253,18 +277,8 @@
     // アニメーション
     var limit = Math.PI * 2;
     (function animate() {
-        mainAnimID = requestAnimationFrame(animate);
-
-        container.rotation.x += 0.01;
-        container.rotation.y += 0.005;
-
-        if (container.rotation.x >= limit) {
-            container.rotation.x = 0;
-        }
-        if (container.rotation.y >= limit) {
-            container.rotation.y = 0;
-        }
-
+        requestAnimationFrame(animate);
+        currentAnimation();
         render();
     }());
 
